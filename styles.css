@@ -1,0 +1,298 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.current-time {
+    font-size: 1.5em;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+.main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+@media (max-width: 968px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Conditions Panel */
+.conditions-panel {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 25px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.conditions-panel h2 {
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    border-bottom: 3px solid #ffd700;
+    padding-bottom: 10px;
+}
+
+.conditions-display {
+    margin-bottom: 30px;
+}
+
+.condition-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 1.2em;
+}
+
+.condition-item .label {
+    font-weight: bold;
+}
+
+.condition-item .value {
+    color: #ffd700;
+}
+
+/* Snow Visual */
+.snow-visual {
+    margin: 30px 0;
+    height: 200px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#snowCanvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* History Chart */
+.history-section {
+    margin-top: 30px;
+}
+
+.history-section h3 {
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    color: #ffd700;
+}
+
+#historyChart {
+    width: 100%;
+    height: 250px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+/* Leaderboard Panel */
+.leaderboard-panel {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 25px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.leaderboard-panel h2 {
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    border-bottom: 3px solid #ffd700;
+    padding-bottom: 10px;
+}
+
+.leaderboard {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    border: 3px solid #333;
+}
+
+.leaderboard-item {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #2a2a2a;
+    border-radius: 5px;
+}
+
+.rank {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #ffd700;
+    text-align: center;
+}
+
+.resort-name {
+    font-size: 1.2em;
+}
+
+.snowfall-display {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+/* Split-Flap Display Animation */
+.flip-digit {
+    display: inline-block;
+    width: 28px;
+    height: 40px;
+    background: #000;
+    border: 2px solid #444;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    perspective: 200px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.flip-digit::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #222;
+    z-index: 10;
+}
+
+.flip-card {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.flip-card-top,
+.flip-card-bottom {
+    position: absolute;
+    width: 100%;
+    height: 50%;
+    overflow: hidden;
+    background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+}
+
+.flip-card-top {
+    top: 0;
+    border-bottom: 1px solid #000;
+}
+
+.flip-card-bottom {
+    bottom: 0;
+    border-top: 1px solid #333;
+}
+
+.flip-card-top span,
+.flip-card-bottom span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #f0f0f0;
+    text-shadow: 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+.flip-card-top span {
+    top: 0;
+}
+
+.flip-card-bottom span {
+    bottom: 0;
+}
+
+/* Flipping Animation */
+.flip-card-top.flipping {
+    animation: flipTop 0.6s ease-in-out;
+    transform-origin: bottom;
+}
+
+.flip-card-bottom.flipping {
+    animation: flipBottom 0.6s ease-in-out;
+    transform-origin: top;
+}
+
+@keyframes flipTop {
+    0% {
+        transform: rotateX(0deg);
+    }
+    100% {
+        transform: rotateX(-90deg);
+    }
+}
+
+@keyframes flipBottom {
+    0% {
+        transform: rotateX(90deg);
+    }
+    100% {
+        transform: rotateX(0deg);
+    }
+}
+
+.flip-unit {
+    color: #aaa;
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+
+/* Medal colors for top 3 */
+.leaderboard-item:nth-child(1) .rank {
+    color: #ffd700;
+    text-shadow: 0 0 10px #ffd700;
+}
+
+.leaderboard-item:nth-child(2) .rank {
+    color: #c0c0c0;
+    text-shadow: 0 0 10px #c0c0c0;
+}
+
+.leaderboard-item:nth-child(3) .rank {
+    color: #cd7f32;
+    text-shadow: 0 0 10px #cd7f32;
+}
