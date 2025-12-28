@@ -20,23 +20,63 @@ function updateTime() {
 setInterval(updateTime, 1000);
 updateTime();
 
-// Simulated Jackson Hole Conditions
-// In production, this would fetch from a real API
-function updateJacksonHoleConditions() {
-    const conditions = {
-        temperature: Math.floor(Math.random() * 20) + 15, // 15-35°F
-        snowfall24: Math.floor(Math.random() * 12) + 2, // 2-14 inches
-        baseDepth: Math.floor(Math.random() * 50) + 80, // 80-130 inches
-        conditions: ['Powder', 'Packed Powder', 'Light Snow', 'Heavy Snow'][Math.floor(Math.random() * 4)]
-    };
+// Global data store
+let snowData = null;
 
-    document.getElementById('temperature').textContent = `${conditions.temperature}°F`;
-    document.getElementById('snowfall24').textContent = `${conditions.snowfall24}"`;
-    document.getElementById('baseDepth').textContent = `${conditions.baseDepth}"`;
-    document.getElementById('conditions').textContent = conditions.conditions;
+// Load snow data from JSON file
+async function loadSnowData() {
+    try {
+        const response = await fetch('snow-data.json');
+        snowData = await response.json();
+        console.log('Snow data loaded:', snowData);
+        return snowData;
+    } catch (error) {
+        console.error('Error loading snow data:', error);
+        // Return fallback data if file doesn't exist
+        return {
+            jacksonHole: {
+                temperature: 25,
+                snowfall24: 4,
+                baseDepth: 95,
+                conditions: 'Packed Powder'
+            },
+            top10Resorts: [
+                { name: 'Alta Ski Area, UT', snowfall7day: 0 },
+                { name: 'Snowbird, UT', snowfall7day: 0 },
+                { name: 'Jackson Hole, WY', snowfall7day: 0 },
+                { name: 'Park City, UT', snowfall7day: 0 },
+                { name: 'Mammoth Mountain, CA', snowfall7day: 0 },
+                { name: 'Palisades Tahoe, CA', snowfall7day: 0 },
+                { name: 'Aspen Snowmass, CO', snowfall7day: 0 },
+                { name: 'Vail, CO', snowfall7day: 0 },
+                { name: 'Telluride, CO', snowfall7day: 0 },
+                { name: 'Big Sky, MT', snowfall7day: 0 }
+            ],
+            snowHistory: []
+        };
+    }
+}
+
+// Update Jackson Hole Conditions with real data
+function updateJacksonHoleConditions() {
+    if (!snowData || !snowData.jacksonHole) {
+        console.log('No data available yet');
+        return;
+    }
+
+    const jh = snowData.jacksonHole;
+
+    document.getElementById('temperature').textContent =
+        jh.temperature ? `${jh.temperature}°F` : '--°F';
+    document.getElementById('snowfall24').textContent =
+        jh.snowfall24 !== undefined ? `${jh.snowfall24}"` : '--"';
+    document.getElementById('baseDepth').textContent =
+        jh.baseDepth ? `${jh.baseDepth}"` : '--"';
+    document.getElementById('conditions').textContent =
+        jh.conditions || 'Unknown';
 
     // Update snow animation based on snowfall
-    updateSnowAnimation(conditions.snowfall24);
+    updateSnowAnimation(jh.snowfall24 || 0);
 }
 
 // Dynamic Snow Animation
@@ -113,18 +153,23 @@ function drawSnowHistory() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
 
-    // Generate 4 weeks of data (28 days)
-    const days = 28;
-    const data = [];
-    for (let i = 0; i < days; i++) {
-        data.push(Math.floor(Math.random() * 15) + 1); // 1-16 inches per day
+    // Use real data if available, otherwise use fallback
+    let data = [];
+    if (snowData && snowData.snowHistory && snowData.snowHistory.length > 0) {
+        data = snowData.snowHistory.map(d => d.snowfall);
+    } else {
+        // Fallback: Generate 28 days of data
+        for (let i = 0; i < 28; i++) {
+            data.push(Math.floor(Math.random() * 15) + 1);
+        }
     }
 
+    const days = data.length;
     const padding = 40;
     const chartWidth = canvas.width - padding * 2;
     const chartHeight = canvas.height - padding * 2;
     const barWidth = chartWidth / days;
-    const maxSnow = Math.max(...data);
+    const maxSnow = Math.max(...data, 1); // Avoid division by zero
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -170,19 +215,8 @@ function drawSnowHistory() {
     ctx.fillText('This Week', padding + chartWidth * 0.75, canvas.height - 10);
 }
 
-// Top 10 Resorts Leaderboard Data
-const leaderboardData = [
-    { name: 'Alta Ski Area, UT', snowfall: 87 },
-    { name: 'Snowbird, UT', snowfall: 82 },
-    { name: 'Jackson Hole, WY', snowfall: 76 },
-    { name: 'Mammoth Mountain, CA', snowfall: 71 },
-    { name: 'Squaw Valley, CA', snowfall: 68 },
-    { name: 'Park City, UT', snowfall: 64 },
-    { name: 'Aspen Snowmass, CO', snowfall: 59 },
-    { name: 'Vail, CO', snowfall: 55 },
-    { name: 'Telluride, CO', snowfall: 52 },
-    { name: 'Big Sky, MT', snowfall: 48 }
-];
+// Leaderboard data will be loaded from JSON
+let leaderboardData = [];
 
 // Split-Flap Display Component
 class FlipDigit {
@@ -244,8 +278,21 @@ class FlipDigit {
 
 // Create Leaderboard
 function createLeaderboard() {
+    // Load data from snowData if available
+    if (snowData && snowData.top10Resorts) {
+        leaderboardData = snowData.top10Resorts.map(resort => ({
+            name: resort.name,
+            snowfall: resort.snowfall7day || 0
+        }));
+    }
+
     const leaderboard = document.getElementById('leaderboard');
     leaderboard.innerHTML = '';
+
+    if (leaderboardData.length === 0) {
+        leaderboard.innerHTML = '<p style="color: #999; text-align: center;">No data available. Run "npm run scrape" to fetch latest snow data.</p>';
+        return;
+    }
 
     leaderboardData.forEach((resort, index) => {
         const item = document.createElement('div');
@@ -300,39 +347,62 @@ function initializeFlipDigits() {
         container.appendChild(unit);
     });
 
-    // Start the animation sequence
-    setTimeout(() => animateLeaderboard(), 1000);
+    // Start the refresh cycle after initial load
+    setTimeout(refreshData, 30 * 60 * 1000); // 30 minutes
 }
 
-// Animate Leaderboard with Random Changes
-async function animateLeaderboard() {
-    // Pick a random resort to update
-    const index = Math.floor(Math.random() * leaderboardData.length);
-    const currentSnowfall = leaderboardData[index].snowfall;
+// Reload data periodically and update display
+async function refreshData() {
+    console.log('Refreshing snow data...');
+    const newData = await loadSnowData();
 
-    // Add 1-3 inches randomly
-    const newSnowfall = currentSnowfall + Math.floor(Math.random() * 3) + 1;
-    leaderboardData[index].snowfall = newSnowfall;
+    if (newData && newData.top10Resorts) {
+        // Update leaderboard with new data
+        for (let i = 0; i < newData.top10Resorts.length && i < leaderboardData.length; i++) {
+            const newSnowfall = newData.top10Resorts[i].snowfall7day || 0;
+            const oldSnowfall = leaderboardData[i].snowfall;
 
-    // Update the flip digits
-    const newSnowfallStr = newSnowfall.toString().padStart(2, '0');
-    const digits = flipDigitsMap[index];
+            if (newSnowfall !== oldSnowfall) {
+                leaderboardData[i].snowfall = newSnowfall;
 
-    if (digits) {
-        for (let i = 0; i < digits.length; i++) {
-            await digits[i].flip(parseInt(newSnowfallStr[i]));
-            await new Promise(resolve => setTimeout(resolve, 100));
+                // Animate the change with flip digits
+                const newSnowfallStr = newSnowfall.toString().padStart(2, '0');
+                const digits = flipDigitsMap[i];
+
+                if (digits) {
+                    for (let j = 0; j < digits.length; j++) {
+                        await digits[j].flip(parseInt(newSnowfallStr[j]));
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+            }
         }
+
+        // Update Jackson Hole conditions
+        updateJacksonHoleConditions();
+
+        // Redraw snow history
+        drawSnowHistory();
     }
 
-    // Schedule next animation
-    setTimeout(() => animateLeaderboard(), 3000 + Math.random() * 4000);
+    // Schedule next refresh (every 30 minutes)
+    setTimeout(refreshData, 30 * 60 * 1000);
 }
 
 // Initialize everything
-updateJacksonHoleConditions();
-drawSnowHistory();
-createLeaderboard();
+async function init() {
+    console.log('Initializing snow tracker...');
 
-// Refresh conditions every 5 minutes
-setInterval(updateJacksonHoleConditions, 300000);
+    // Load data first
+    await loadSnowData();
+
+    // Then initialize all displays
+    updateJacksonHoleConditions();
+    drawSnowHistory();
+    createLeaderboard();
+
+    console.log('Snow tracker initialized!');
+}
+
+// Start the application
+init();

@@ -32,18 +32,48 @@ A dynamic, real-time snow conditions dashboard featuring Jackson Hole ski condit
 
 ## Getting Started
 
-Simply open `index.html` in any modern web browser. No build process or dependencies required!
+### Quick Start (View Demo)
+
+Simply open `index.html` in any modern web browser:
 
 ```bash
-# Option 1: Direct file open
-open index.html
-
-# Option 2: Simple HTTP server (Python)
+# Option 1: Simple HTTP server (Python)
 python3 -m http.server 8000
 # Then visit http://localhost:8000
 
-# Option 3: Simple HTTP server (Node.js)
+# Option 2: Simple HTTP server (Node.js)
 npx http-server
+```
+
+### Getting Real Snow Data
+
+To display actual, up-to-date snow conditions:
+
+1. **Install dependencies:**
+```bash
+npm install
+```
+
+2. **Run the scraper to fetch current snow data:**
+```bash
+npm run scrape
+```
+
+This will scrape OnTheSnow.com and other resort websites to get real 7-day snowfall totals for top US resorts. The data is saved to `snow-data.json`.
+
+3. **View the updated dashboard:**
+```bash
+npm start
+# Or use: python3 -m http.server 8000
+```
+
+4. **Optional: Schedule regular updates**
+
+To keep data fresh, you can set up a cron job (Linux/Mac) or Task Scheduler (Windows):
+
+```bash
+# Run scraper every 6 hours
+0 */6 * * * cd /path/to/project && npm run scrape
 ```
 
 ## Technology Stack
@@ -75,35 +105,75 @@ Dynamic particle system that:
 
 ## Data Source
 
-Currently uses simulated data for demonstration purposes. To integrate real data:
+This project includes a web scraper (`scraper.js`) that fetches real-time snow data from public sources:
 
-1. **Jackson Hole Conditions**: Replace the `updateJacksonHoleConditions()` function with an API call to a weather/ski service
-2. **Leaderboard Data**: Update `leaderboardData` array with real resort data from ski condition APIs
+### What Gets Scraped
 
-### Recommended APIs
-- [OpenWeather API](https://openweathermap.org/api) - Weather data
-- [OpenSnow](https://opensnow.com) - Ski-specific conditions
-- Custom scraping of resort websites
+- **OnTheSnow.com** - 7-day snowfall totals for major US resorts
+- **Resort statistics**: 24hr snowfall, base depth, temperature
+- **Top 10 rankings**: Automatically sorted by 7-day snowfall
+
+### Data Structure
+
+The scraper creates a `snow-data.json` file with:
+
+```json
+{
+  "lastUpdated": "2025-01-15T10:30:00.000Z",
+  "jacksonHole": {
+    "name": "Jackson Hole, WY",
+    "snowfall24": 6,
+    "snowfall7day": 18,
+    "baseDepth": 95,
+    "temperature": 22,
+    "conditions": "Powder"
+  },
+  "top10Resorts": [
+    {
+      "name": "Alta Ski Area, UT",
+      "snowfall7day": 24,
+      ...
+    }
+  ],
+  "snowHistory": [...]
+}
+```
+
+### Scraper Features
+
+- Sequential scraping to avoid overwhelming servers
+- Error handling with fallback data
+- Automatic sorting by snowfall
+- Configurable resort list in `scraper.js`
+- 1-second delay between requests
 
 ## Customization
 
-### Update Refresh Intervals
+### Add More Resorts
+
+Edit the `resorts` array in `scraper.js`:
+
 ```javascript
-// In script.js
-setInterval(updateJacksonHoleConditions, 300000); // 5 minutes (in milliseconds)
+const resorts = [
+    { name: 'Your Resort, ST', url: 'https://www.onthesnow.com/state/resort/skireport' },
+    // Add more resorts here
+];
 ```
 
-### Modify Leaderboard Animation Speed
+### Update Data Refresh Interval
+
+In `script.js`, modify the `refreshData()` function:
+
 ```javascript
-// In animateLeaderboard() function
-setTimeout(() => animateLeaderboard(), 3000 + Math.random() * 4000); // 3-7 seconds
+setTimeout(refreshData, 30 * 60 * 1000); // Currently 30 minutes
 ```
 
 ### Change Color Scheme
-Edit the CSS variables in `styles.css`:
-- Background gradients
+
+Edit `styles.css`:
+- Background gradients (body selector)
 - Text colors
-- Split-flap display colors
+- Split-flap display colors (.flip-digit class)
 
 ## Browser Support
 
@@ -115,13 +185,15 @@ Works on all modern browsers:
 
 ## Future Enhancements
 
-- [ ] Real-time API integration
-- [ ] User location detection
-- [ ] Multiple resort comparison
-- [ ] Webcam feeds
-- [ ] Weather forecasts
-- [ ] Social sharing
+- [x] Real-time data scraping
+- [ ] User location detection for nearest resorts
+- [ ] Multiple resort comparison view
+- [ ] Live webcam feeds integration
+- [ ] 7-day weather forecast
+- [ ] Social media sharing
 - [ ] Push notifications for powder alerts
+- [ ] Historical snow data comparison
+- [ ] Lift status and trail maps
 
 ## License
 
